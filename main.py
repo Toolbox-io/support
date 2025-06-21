@@ -1,28 +1,33 @@
 import ollama
 
-with open("context.md", "r") as f:
-    context = f.read()
+# --- Load Context and Instructions ---
+try:
+    with open("context/data.md", "r") as f:
+        full_context = f.read()
+except FileNotFoundError:
+    print("Error: context/data.md not found.")
+    exit()
 
-def answer_question_with_ollama(question, model='phi'):
+try:
+    with open("context/instruction.md", "r") as f:
+        instructions = f.read()
+except FileNotFoundError:
+    print("Error: context/instruction.md not found.")
+    exit()
+
+def get_ai_output(question, model='phi') -> str:
     print("Thinking...")
-    response = ollama.chat(
+    system_prompt = f"{instructions}\n\n## Context\n\n{full_context}"
+
+    return ollama.chat(
         model=model,
         messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant. Answer ONLY using the information in the text below. "
-                    "If the answer is not present, say 'I don't know.'\n\n"
-                    f"Text:\n{context}"
-                )
-            },
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": question}
         ]
-    )
-    return response['message']['content'].strip()
+    )["message"]["content"].replace("**Answer:**", "", 1).replace("Answer:", "", 1).strip()
 
+# --- Main Loop ---
 if __name__ == "__main__":
-    print("[INFO] Using Ollama LLM (phi) for generative answers.")
     while True:
-        q = input("Ask a question: ")
-        print("Answer:", answer_question_with_ollama(q, model='phi'))
+        print(get_ai_output(input("Ask a question: "), model='llama3:8b'))
