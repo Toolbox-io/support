@@ -1,0 +1,5 @@
+README.md
+LICENSE
+.venv
+build.sh
+.dockerignore
