@@ -1,4 +1,10 @@
-import ollama
+import os
+
+from dotenv import load_dotenv
+from yandex_cloud_ml_sdk import YCloudML
+from yandex_cloud_ml_sdk._types.message import TextMessage
+
+load_dotenv()
 
 # --- Load Context and Instructions ---
 try:
@@ -15,19 +21,40 @@ except FileNotFoundError:
     print("Error: context/instruction.md not found.")
     exit()
 
-def get_ai_output(question, model='phi') -> str:
-    print("Thinking...")
-    system_prompt = f"{instructions}\n\n## Context\n\n{full_context}"
+# --- Yandex Cloud settings ---
+sdk = YCloudML(
+    folder_id=os.getenv("YANDEX_CLOUD_FOLDER_ID"),
+    auth=os.getenv("YANDEX_CLOUD_TOKEN")
+)
+model = sdk.models.completions("yandexgpt-lite", model_version="deprecated")
+model = model.configure(temperature=0)
 
-    return ollama.chat(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": question}
+# --- Main Output Logic ---
+def get_ai_output(question) -> str:
+    print("Thinking...")
+
+    result = model.run(
+        [
+            TextMessage(
+                role="system",
+                text=f"{instructions}\n\n## Контекст\n\n{full_context}"
+            ),
+            TextMessage(
+                role="user",
+                text=question
+            )
         ]
-    )["message"]["content"].replace("**Answer:**", "", 1).replace("Answer:", "", 1).strip()
+    )
+
+    response = ""
+
+    for alternative in result:
+        response += str(alternative.text)
+
+    return response.strip()
+
 
 # --- Main Loop ---
 if __name__ == "__main__":
     while True:
-        print(get_ai_output(input("Ask a question: "), model='llama3:8b'))
+        print(get_ai_output(input("Ask a question: ")))
