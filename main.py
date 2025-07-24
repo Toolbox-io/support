@@ -30,4 +30,4 @@ def get_ai_output(question, model) -> str:
 # --- Main Loop ---
 if __name__ == "__main__":
     while True:
-        print(get_ai_output(input("Ask a question: "), model='gemma:2b'))
+        print(get_ai_output(input("Ask a question: "), model='gemma2:2b'))
