@@ -15,7 +15,7 @@ except FileNotFoundError:
     print("Error: context/instruction.md not found.")
     exit()
 
-def get_ai_output(question, model='phi') -> str:
+def get_ai_output(question, model) -> str:
     print("Thinking...")
     system_prompt = f"{instructions}\n\n## Context\n\n{full_context}"
 
@@ -30,4 +30,4 @@ def get_ai_output(question, model='phi') -> str:
 # --- Main Loop ---
 if __name__ == "__main__":
     while True:
-        print(get_ai_output(input("Ask a question: "), model='llama3:8b'))
+        print(get_ai_output(input("Ask a question: "), model='gemma:2b'))
